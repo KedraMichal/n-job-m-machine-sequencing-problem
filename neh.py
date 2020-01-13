@@ -26,7 +26,10 @@ def calculate(arr, number_of_tasks):
         if w == 0:
             row_sum = np.array([])
             row_sum = np.append(row_sum, j)
-        else:
+        elif w ==1:
+            row_sum = np.append(row_sum, j)
+
+        elif w < 11:
             row_sum = np.append(row_sum, j + row_sum[w-1])
         w = w + 1
     x1 = row_sum
