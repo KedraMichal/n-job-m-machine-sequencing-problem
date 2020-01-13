@@ -21,12 +21,21 @@ def calculate(arr, number_of_tasks):
     n = 0
     first_row = arr[0, 0:11]
     x1 = arr[0, 0:11]
+    w = 0
+    for j in x1:
+        if w == 0:
+            row_sum = np.array([])
+            row_sum = np.append(row_sum, j)
+        else:
+            row_sum = np.append(row_sum, j + row_sum[w-1])
+        w = w + 1
+    x1 = row_sum
+    first_row = row_sum
+
     df_copy = arr[1:number_of_tasks, 0:11]
     for i in df_copy:
-
         row_add = np.array([])
         for k in i:
-
             if n == 0:
                 row_add = np.append(row_add, k)
             elif n == 1:
@@ -62,7 +71,6 @@ def find(df_before, new_row):
             result_of_comb = calculate(test_arr, rows+1)[-1][-1]
             list.append(result_of_comb)
         elif i == rows:
-            test_arr = 0
             test_arr = np.vstack([new_row, df_before])
             result_of_comb = calculate(test_arr, rows+1)[-1][-1]
             list.append(result_of_comb)
