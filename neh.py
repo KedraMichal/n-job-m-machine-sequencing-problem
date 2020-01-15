@@ -1,6 +1,6 @@
 import pandas as pd
-import xlrd
 import numpy as np
+import xlrd
 
 df = pd.read_excel('data.xlsx')
 
@@ -9,10 +9,12 @@ df = df.sort_values(by=['sum'], ascending=False)
 df = df.reset_index(drop=True)
 np.set_printoptions(suppress=True)
 df = df.to_numpy()
+number_of_machines = df.shape[1] - 1
+tasks = df.shape[0]
 
 
 def calculate(arr):
-    first_row = arr[0, 0:11]
+    first_row = arr[0, 0:number_of_machines]
     w = 0
     row_sum = np.array([])
     for j in first_row:
@@ -20,7 +22,7 @@ def calculate(arr):
             row_sum = np.append(row_sum, j)
         elif w == 1:
             row_sum = np.append(row_sum, j)
-        elif w < 11:
+        elif w < number_of_machines+1:
             row_sum = np.append(row_sum, j + row_sum[w - 1])
         w = w + 1
     result = row_sum
@@ -28,7 +30,7 @@ def calculate(arr):
     if arr.ndim > 1:
         row_before = result
         number_of_tasks = arr.shape[0]
-        df_copy = arr[1:number_of_tasks, 0:11]
+        df_copy = arr[1:number_of_tasks, 0:number_of_machines]
         n = 0
         for i in df_copy:
             row_add = np.array([])
@@ -37,13 +39,13 @@ def calculate(arr):
                     row_add = np.append(row_add, k)
                 elif n == 1:
                     row_add = np.append(row_add, k + row_before[1])
-                elif n < 11:
+                elif n < number_of_machines+1:
                     add = max(row_add[n - 1], row_before[n]) + k
                     row_add = np.append(row_add, add)
                 else:
                     pass
                 n = n + 1
-                if n == 11:
+                if n == number_of_machines:
                     n = 0
                     row_before = row_add.copy()
             result = np.vstack([result, row_add])
@@ -87,9 +89,9 @@ def find(df_before, new_row):
     return arr_best, order
 
 
-for i in range(49):
-    arr_start = df[0:1, 0:11]
-    arr_add = df[i + 1, 0:11]
+for i in range(tasks - 1):
+    arr_start = df[0:1, 0:number_of_machines]
+    arr_add = df[i + 1, 0:number_of_machines]
     if i == 0:
         new_arr = find(arr_start, arr_add)[1]
     else:
@@ -98,4 +100,6 @@ for i in range(49):
     print(calculate(new_arr))
     print(calculate(new_arr)[-1][-1])
 
-pd.DataFrame(calculate(new_arr)).to_csv("neh_result.csv", index=False, header=None)
+result = pd.DataFrame(calculate(new_arr))
+result = result.astype(int)
+result.to_csv("neh_result.csv", index=False, header=None)
