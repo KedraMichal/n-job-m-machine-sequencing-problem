@@ -1,20 +1,20 @@
 import pandas as pd
-import xlrd
 import numpy as np
 import random as rd
 import sklearn
+import xlrd
 
-df = pd.read_excel('data.xlsx')
+df = pd.read_excel('data2.xlsx')
 df = sklearn.utils.shuffle(df)
 df = df.reset_index(drop=True)
 np.set_printoptions(suppress=True)
 df = df.to_numpy()
-count_rows = df.shape[0]
-
+tasks = df.shape[0]
+number_of_machines = df.shape[1] - 1
 
 
 def calculate(arr):
-    first_row = arr[0, 0:11]
+    first_row = arr[0, 0:number_of_machines]
     w = 0
     row_sum = np.array([])
     for j in first_row:
@@ -22,7 +22,7 @@ def calculate(arr):
             row_sum = np.append(row_sum, j)
         elif w == 1:
             row_sum = np.append(row_sum, j)
-        elif w < 11:
+        elif w < number_of_machines+1:
             row_sum = np.append(row_sum, j + row_sum[w - 1])
         w = w + 1
     result = row_sum
@@ -30,7 +30,7 @@ def calculate(arr):
     if arr.ndim > 1:
         row_before = result
         number_of_tasks = arr.shape[0]
-        df_copy = arr[1:number_of_tasks, 0:11]
+        df_copy = arr[1:number_of_tasks, 0:number_of_machines]
         n = 0
         for i in df_copy:
             row_add = np.array([])
@@ -39,23 +39,23 @@ def calculate(arr):
                     row_add = np.append(row_add, k)
                 elif n == 1:
                     row_add = np.append(row_add, k + row_before[1])
-                elif n < 11:
+                elif n < number_of_machines+1:
                     add = max(row_add[n - 1], row_before[n]) + k
                     row_add = np.append(row_add, add)
                 else:
                     pass
                 n = n + 1
-                if n == 11:
+                if n == number_of_machines:
                     n = 0
                     row_before = row_add.copy()
             result = np.vstack([result, row_add])
     return result
 
 def random():
-    a = rd.randint(0, count_rows - 1)
-    b = rd.randint(0, count_rows - 1)
+    a = rd.randint(0, tasks - 1)
+    b = rd.randint(0, tasks - 1)
     while a == b:
-        b = rd.randint(0, count_rows - 1)
+        b = rd.randint(0, tasks - 1)
     return a, b
 
 def swap(arr, a, b):
@@ -75,9 +75,11 @@ def main():
     else:
         return dfcopy
 
-for i in range(10000):
+for i in range(1000):
     final = main()
     df = final.copy()
 
 print(calculate(final))
-pd.DataFrame(final).to_csv("climbing_result.csv", index=False, header=None)
+final = pd.DataFrame(calculate(final))
+final = final.astype(int)
+final.to_csv("climbing_result.csv", index=False, header=None)
