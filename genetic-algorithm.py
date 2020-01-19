@@ -10,7 +10,7 @@ np.set_printoptions(suppress=True)
 df = df.to_numpy()
 tasks = df.shape[0]
 number_of_machines = df.shape[1] - 1
-
+df_start = df.copy()
 def calculate(arr):
     first_row = arr[0, 0:number_of_machines]
     w = 0
@@ -50,26 +50,72 @@ def calculate(arr):
     return result
 
 
+def generate_pop(population_size):
+    list_of_pop = np.array([])
+    for i in range(population_size):
+        osobnik = np.random.choice(np.arange(0, 50), 50, replace=False)
+        if i == 0:
+            list_of_pop = np.append(list_of_pop, osobnik)
+        else:
+            list_of_pop = np.vstack([list_of_pop, osobnik])
+    return list_of_pop
 
-list_of_pop = np.array([])
-for i in range(10):
-    osobnik = np.random.choice(np.arange(0,50), 50, replace=False)
-    if i== 0:
-        list_of_pop = np.append(list_of_pop, osobnik)
-    else:
-        list_of_pop = np.vstack([list_of_pop, osobnik])
 
-
-print(list_of_pop)
-indeks_order = list_of_pop[0,:]
-indeks_order = indeks_order.astype(np.int64)
-print(indeks_order)
-df = df.take(indeks_order, axis=0)
-print(df)
-lis = np.array([])
-for i in range(10):
-    indeks_order = list_of_pop[0, :]
+def osobnik_cal(data, indeks_order):
+    d_copy = data
     indeks_order = indeks_order.astype(np.int64)
-    df = df.take(indeks_order, axis=0)
-    lis = np.append(lis, calculate(df)[-1][-1])
-print(lis)
+    d_copy = d_copy.take(indeks_order, axis=0)
+    res = calculate(d_copy)[-1][-1]
+    return res
+
+
+def ranking(data, population):
+    arr = np.array([])
+    for i in range(len(population)):
+        data_start = data
+        indeks_order = population[i, :]
+        indeks_order = indeks_order.astype(np.int64)
+        data_start = data_start.take(indeks_order, axis=0)
+        arr = np.append(arr, calculate(data_start)[-1][-1])
+
+    best_osob_index = np.argsort(arr)[:2]  # indeks naj osobnikow
+    best1 = population[best_osob_index[0]]
+    best2 = population[best_osob_index[1]]
+
+    return best1, best2
+
+
+def cross(parent1, parent2):
+    len1 = int(parent1.shape[0] / 2)
+    potomek1 = parent1[0:len1]
+    for i in parent2:
+        if i in potomek1:
+            pass
+        else:
+            potomek1 = np.append(potomek1, i)
+    potomek2 = parent2[0:len1]
+    for i in parent1:
+        if i in potomek2:
+            pass
+        else:
+            potomek2 = np.append(potomek2, i)
+
+    return potomek1, potomek2
+
+
+def mutate(osobnik):
+    if (rd.random() >= 0.9):
+        rand1, rand2 = np.random.choice(np.arange(0, 50), 2, replace=False)
+        osobnik[[rand1, rand2]] = osobnik[[rand2, rand1]]
+
+    return osobnik
+
+
+
+k = ranking(df_start, generate_pop(1000))
+print(osobnik_cal( df_start, k[0]), osobnik_cal(df_start, k[1]))
+f, g = cross(k[0], k[1])
+print(osobnik_cal( df_start, f), osobnik_cal(df_start, g))
+mutate(f)
+mutate(g)
+print(osobnik_cal( df_start, f), osobnik_cal(df_start, g))
