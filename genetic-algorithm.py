@@ -11,6 +11,8 @@ df = df.to_numpy()
 tasks = df.shape[0]
 number_of_machines = df.shape[1] - 1
 df_start = df.copy()
+
+
 def calculate(arr):
     first_row = arr[0, 0:number_of_machines]
     w = 0
@@ -62,10 +64,9 @@ def generate_pop(population_size):
 
 
 def osobnik_cal(data, indeks_order):
-    d_copy = data
     indeks_order = indeks_order.astype(np.int64)
-    d_copy = d_copy.take(indeks_order, axis=0)
-    res = calculate(d_copy)[-1][-1]
+    data = data.take(indeks_order, axis=0)
+    res = calculate(data)[-1][-1]
     return res
 
 
@@ -78,29 +79,39 @@ def ranking(data, population):
         data_start = data_start.take(indeks_order, axis=0)
         arr = np.append(arr, calculate(data_start)[-1][-1])
 
-    best_osob_index = np.argsort(arr)[:2]  # indeks naj osobnikow
-    best1 = population[best_osob_index[0]]
-    best2 = population[best_osob_index[1]]
+    best_osob_index = np.argsort(arr)[:10]  # indeks naj osobnikow
+    best = population[best_osob_index[:]]
 
-    return best1, best2
+    return best
 
 
-def cross(parent1, parent2):
-    len1 = int(parent1.shape[0] / 2)
-    potomek1 = parent1[0:len1]
-    for i in parent2:
-        if i in potomek1:
-            pass
+def cross(best3):
+    potomki = np.array([])
+    for i in range(5):
+        parent1 = best3[i]
+        parent2 = best3[9-i]
+        len1 = int(parent1.shape[0]/2)
+        potomek1 = parent1[0:len1]
+        for i in parent2:
+            if i in potomek1:
+                pass
+            else:
+                potomek1 = np.append(potomek1, i)
+        if len(potomki) == 0:
+            potomki = potomek1
         else:
-            potomek1 = np.append(potomek1, i)
-    potomek2 = parent2[0:len1]
-    for i in parent1:
-        if i in potomek2:
-            pass
-        else:
-            potomek2 = np.append(potomek2, i)
+            potomki = np.vstack([potomki, potomek1])
 
-    return potomek1, potomek2
+        potomek2 = parent2[0:len1]
+        for i in parent1:
+            if i in potomek2:
+                pass
+            else:
+                potomek2 = np.append(potomek2, i)
+
+        potomki = np.vstack([potomki, potomek2])
+
+    return potomki
 
 
 def mutate(osobnik):
@@ -111,11 +122,26 @@ def mutate(osobnik):
     return osobnik
 
 
+k = ranking(df_start, generate_pop(5000))
+potomki_list = cross(k)
+j = 0
+score_arr = np.array([])
+for i in potomki_list:
+    potomki_list[j] = mutate(i)
+    score = osobnik_cal(df_start, potomki_list[j])
+    score_arr = np.append(score_arr, score)
+    if score == min(score_arr):
+        score_best = score
+        comb_best = potomki_list[j]
+    j = j+1
 
-k = ranking(df_start, generate_pop(1000))
-print(osobnik_cal( df_start, k[0]), osobnik_cal(df_start, k[1]))
-f, g = cross(k[0], k[1])
-print(osobnik_cal( df_start, f), osobnik_cal(df_start, g))
-mutate(f)
-mutate(g)
-print(osobnik_cal( df_start, f), osobnik_cal(df_start, g))
+print(score_best)
+print(comb_best)
+
+
+
+
+
+
+
+
