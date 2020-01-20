@@ -70,6 +70,29 @@ def osobnik_cal(data, indeks_order):
     return res
 
 
+def turniej(data, population):
+    best_pop = np.array([])
+
+    for i in range(len(population)):
+        random_osob = np.random.choice(np.arange(0, len(population)), 2, replace=False)
+        osobnik1 = population[random_osob[0], :]
+        score1 = osobnik_cal(data, osobnik1)
+        osobnik2 = population[random_osob[1], :]
+        score2 = osobnik_cal(data, osobnik2)
+        if score1 < score2:
+            if len(best_pop) == 0:
+                best_pop = osobnik1
+            else:
+                best_pop = np.vstack([best_pop, osobnik1])
+        else:
+            if len(best_pop) == 0:
+                best_pop = osobnik2
+            else:
+                best_pop = np.vstack([best_pop, osobnik2])
+
+    return best_pop
+
+
 def ranking(data, population):
     arr = np.array([])
     for i in range(len(population)):
@@ -122,25 +145,9 @@ def mutate(osobnik):
     return osobnik
 
 
-k = ranking(df_start, generate_pop(5000))
-potomki_list = cross(k)
-j = 0
-score_arr = np.array([])
-for i in potomki_list:
-    potomki_list[j] = mutate(i)
-    score = osobnik_cal(df_start, potomki_list[j])
-    score_arr = np.append(score_arr, score)
-    if score == min(score_arr):
-        score_best = score
-        comb_best = potomki_list[j]
-    j = j+1
 
-print(score_best)
-print(comb_best)
-
-
-
-
+pop = generate_pop(50)
+t = turniej(df_start, pop)
 
 
 
