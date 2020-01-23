@@ -70,14 +70,14 @@ def osobnik_cal(data, indeks_order):
     return res
 
 
-def turniej(data, population):
+def tournament(data, population):
     best_pop = np.array([])
 
     for i in range(len(population)):
         random_osob = np.random.choice(np.arange(0, len(population)), 2, replace=False)
-        osobnik1 = population[random_osob[0], :]
+        osobnik1 = population[random_osob[0]]
         score1 = osobnik_cal(data, osobnik1)
-        osobnik2 = population[random_osob[1], :]
+        osobnik2 = population[random_osob[1]]
         score2 = osobnik_cal(data, osobnik2)
         if score1 < score2:
             if len(best_pop) == 0:
@@ -108,47 +108,73 @@ def ranking(data, population):
     return best
 
 
-def cross(best3):
-    potomki = np.array([])
-    for i in range(5):
-        parent1 = best3[i]
-        parent2 = best3[9-i]
+def cross(parents):
+    offsprings = np.array([])
+    for i in range(int(len(parents)/2)):
+        parent1 = parents[i]
+        parent2 = parents[len(parents)-1-i]
         len1 = int(parent1.shape[0]/2)
-        potomek1 = parent1[0:len1]
+        offspring1 = parent1[0:len1]
         for i in parent2:
-            if i in potomek1:
+            if i in offspring1:
                 pass
             else:
-                potomek1 = np.append(potomek1, i)
-        if len(potomki) == 0:
-            potomki = potomek1
+                offspring1 = np.append(offspring1, i)
+        if len(offsprings) == 0:
+            offsprings = offspring1
         else:
-            potomki = np.vstack([potomki, potomek1])
+            offsprings = np.vstack([offsprings, offspring1])
 
-        potomek2 = parent2[0:len1]
+        offspring2 = parent2[0:len1]
         for i in parent1:
-            if i in potomek2:
+            if i in offspring2:
                 pass
             else:
-                potomek2 = np.append(potomek2, i)
+                offspring2 = np.append(offspring2, i)
 
-        potomki = np.vstack([potomki, potomek2])
+        offsprings = np.vstack([offsprings, offspring2])
 
-    return potomki
-
-
-def mutate(osobnik):
-    if (rd.random() >= 0.9):
-        rand1, rand2 = np.random.choice(np.arange(0, 50), 2, replace=False)
-        osobnik[[rand1, rand2]] = osobnik[[rand2, rand1]]
-
-    return osobnik
+    return offsprings
 
 
+def mutate(offspring_array):
+    for i in range(len(offspring_array)):
+        if rd.random() >= 0.95:
+            rand1, rand2 = np.random.choice(np.arange(0, 50), 2, replace=False)
+            offspring_array[i, [rand1, rand2]] = offspring_array[i, [rand2, rand1]]
 
-pop = generate_pop(50)
-t = turniej(df_start, pop)
+    return offspring_array
 
 
+def save_best(population_array, data):
+    data_copy = data.copy()
+    first = True
+    for i in population_array:
+        data = data_copy
+        score = osobnik_cal(data, i)
+        if first:
+            best_score = score
+            best_order = i
+            first = False
+        elif(score < best_score):
+            best_score = score
+            best_order = i
 
+    return best_order, score
+
+
+pop = generate_pop(100)
+for i in range(1000):
+    t = tournament(df_start, pop)
+    w = cross(t)
+    m = mutate(w)
+    s = save_best(m,df_start)
+    if i == 0:
+        best_s = s
+    elif i > 0:
+        if s[1] < best_s[1]:
+            best_s = s
+
+    pop = m
+    print(best_s[1])
 
