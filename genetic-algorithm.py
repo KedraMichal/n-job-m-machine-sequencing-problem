@@ -55,7 +55,7 @@ def calculate(arr):
 def generate_pop(population_size):
     list_of_pop = np.array([])
     for i in range(population_size):
-        osobnik = np.random.choice(np.arange(0, 50), 50, replace=False)
+        osobnik = np.random.choice(np.arange(0, tasks), tasks, replace=False)
         if i == 0:
             list_of_pop = np.append(list_of_pop, osobnik)
         else:
@@ -114,22 +114,7 @@ def rank_roulette(data, population):
     return selected_population
 
 
-def ranking(data, population):
-    arr = np.array([])
-    for i in range(len(population)):
-        data_start = data
-        indeks_order = population[i, :]
-        indeks_order = indeks_order.astype(np.int64)
-        data_start = data_start.take(indeks_order, axis=0)
-        arr = np.append(arr, calculate(data_start)[-1][-1])
-
-    best_osob_index = np.argsort(arr)[:10]  # indeks naj osobnikow
-    best = population[best_osob_index[:]]
-
-    return best
-
-
-def cross(parents):
+def crossover(parents):
     offsprings = np.array([])
     for i in range(int(len(parents) / 2)):
         parent1 = parents[i]
@@ -158,10 +143,58 @@ def cross(parents):
     return offsprings
 
 
+def order_crossover(parents):
+    number1 = np.random.randint(len(parents))
+    number2 = np.random.randint(len(parents))
+    offsprings = np.array([])
+    for i in range(int(len(parents)/2)):
+        if number1 <= number2:
+            offspring1 = parents[i, number1:number2]
+            offspring2 = parents[len(parents) - i - 1, number1:number2]
+            start_len = len(parents) - number2
+            start_len2 = len(parents) - number2
+            add_order_offspring1 = parents[len(parents) - i - 1, number2:]
+            add_order_offspring1 = np.append(add_order_offspring1, parents[len(parents) - i - 1, 0:number2])
+            add_order_offspring2 = parents[i, number2:]
+            add_order_offspring2 = np.append(add_order_offspring2, parents[i, 0:number2])
+        else:
+            offspring1 = parents[i, number2:number1]
+            offspring2 = parents[len(parents) - i - 1, number2:number1]
+            start_len = len(parents) - number1
+            start_len2 = len(parents) - number1
+            add_order_offspring1 = parents[len(parents) - i - 1, number1:]
+            add_order_offspring1 = np.append(add_order_offspring1, parents[len(parents) - i - 1, 0:number1])
+            add_order_offspring2 = parents[i, number1:]
+            add_order_offspring2 = np.append(add_order_offspring2, parents[i, 0:number1])
+
+        for j in add_order_offspring1:
+            if j not in offspring1:
+                if start_len > 0:
+                    offspring1 = np.append(offspring1, j)
+                    start_len = start_len - 1
+                else:
+                    offspring1 = np.insert(offspring1, 0, j)
+        if len(offsprings) == 0:
+            offsprings = offspring1
+        else:
+            offsprings = np.vstack([offsprings, offspring1])
+
+        for j in add_order_offspring2:
+            if j not in offspring2:
+                if start_len2 > 0:
+                    offspring2 = np.append(offspring2, j)
+                    start_len2 = start_len2 - 1
+                else:
+                    offspring2 = np.insert(offspring2, 0, j)
+        offsprings = np.vstack([offsprings, offspring2])
+
+    return offsprings
+
+
 def mutate(offspring_array):
     for i in range(len(offspring_array)):
         if rd.random() >= 0.95:
-            rand1, rand2 = np.random.choice(np.arange(0, 50), 2, replace=False)
+            rand1, rand2 = np.random.choice(np.arange(0, tasks), 2, replace=False)
             offspring_array[i, [rand1, rand2]] = offspring_array[i, [rand2, rand1]]
 
     return offspring_array
@@ -184,10 +217,10 @@ def save_best(population_array, data):
     return best_order, score
 
 
-pop = generate_pop(50)
-for i in range(150):
+pop = generate_pop(100)
+for i in range(100):
     t = rank_roulette(df_start, pop)  # selection: "tournament" or "rank_roulette"
-    w = cross(t)
+    w = crossover(t)  # crossover: "order_crossover" or "crossover"
     m = mutate(w)
     s = save_best(m, df_start)
     if i == 0:
@@ -198,3 +231,4 @@ for i in range(150):
 
     pop = m
     print(best_s[1])
+
