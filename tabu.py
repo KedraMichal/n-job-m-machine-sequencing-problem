@@ -65,10 +65,8 @@ def tabu(tabu_lis, tabu1, tabu2):
 
 tabu_list = []
 
-
 def main(data):
     comb = []
-    print("dzial")
     add_first = True
     min = 0
     print(tabu_list)
@@ -93,6 +91,11 @@ def main(data):
     return data
 
 
-for i in range(50):
+for i in range(100):
     final = main(df)
     df = final.copy()
+
+result = pd.DataFrame(calculate(df))
+result = result.astype(int)
+result.to_csv("tabu_result.csv", index=False, header=None)
+
