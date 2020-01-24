@@ -22,7 +22,7 @@ def calculate(arr):
             row_sum = np.append(row_sum, j)
         elif w == 1:
             row_sum = np.append(row_sum, j)
-        elif w < number_of_machines+1:
+        elif w < number_of_machines + 1:
             row_sum = np.append(row_sum, j + row_sum[w - 1])
         w = w + 1
     result = row_sum
@@ -39,7 +39,7 @@ def calculate(arr):
                     row_add = np.append(row_add, k)
                 elif n == 1:
                     row_add = np.append(row_add, k + row_before[1])
-                elif n < number_of_machines+1:
+                elif n < number_of_machines + 1:
                     add = max(row_add[n - 1], row_before[n]) + k
                     row_add = np.append(row_add, add)
                 else:
@@ -93,6 +93,27 @@ def tournament(data, population):
     return best_pop
 
 
+def rank_roulette(data, population):
+    scores = np.array([])
+    for i in range(len(population)):
+        data_start = data
+        offspring_score = osobnik_cal(data_start, population[i])
+        scores = np.append(scores, offspring_score)
+
+    scores_sort = np.argsort(scores)
+    population = population[scores_sort]
+
+    marks = np.arange(1, len(population) + 1)
+    sum_marks = np.sum(marks)
+    prob = np.sort(marks / sum_marks)[::-1]
+    index = np.arange(len(population))
+
+    roulette = np.random.choice(index, size=len(population), replace=True, p=prob)
+    selected_population = population[roulette]
+
+    return selected_population
+
+
 def ranking(data, population):
     arr = np.array([])
     for i in range(len(population)):
@@ -110,10 +131,10 @@ def ranking(data, population):
 
 def cross(parents):
     offsprings = np.array([])
-    for i in range(int(len(parents)/2)):
+    for i in range(int(len(parents) / 2)):
         parent1 = parents[i]
-        parent2 = parents[len(parents)-1-i]
-        len1 = int(parent1.shape[0]/2)
+        parent2 = parents[len(parents) - 1 - i]
+        len1 = int(parent1.shape[0] / 2)
         offspring1 = parent1[0:len1]
         for i in parent2:
             if i in offspring1:
@@ -156,19 +177,19 @@ def save_best(population_array, data):
             best_score = score
             best_order = i
             first = False
-        elif(score < best_score):
+        elif (score < best_score):
             best_score = score
             best_order = i
 
     return best_order, score
 
 
-pop = generate_pop(100)
-for i in range(1000):
-    t = tournament(df_start, pop)
+pop = generate_pop(50)
+for i in range(150):
+    t = rank_roulette(df_start, pop)  # selection: "tournament" or "rank_roulette"
     w = cross(t)
     m = mutate(w)
-    s = save_best(m,df_start)
+    s = save_best(m, df_start)
     if i == 0:
         best_s = s
     elif i > 0:
@@ -177,4 +198,3 @@ for i in range(1000):
 
     pop = m
     print(best_s[1])
-
