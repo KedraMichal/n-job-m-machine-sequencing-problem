@@ -5,12 +5,13 @@ import sklearn
 import xlrd
 
 df = pd.read_excel('data.xlsx')
+
 df = sklearn.utils.shuffle(df)
 df = df.reset_index(drop=True)
 np.set_printoptions(suppress=True)
 df = df.to_numpy()
+number_of_machines = df.shape[1]
 tasks = df.shape[0]
-number_of_machines = df.shape[1] - 1
 
 
 def calculate(arr):
@@ -22,7 +23,7 @@ def calculate(arr):
             row_sum = np.append(row_sum, j)
         elif w == 1:
             row_sum = np.append(row_sum, j)
-        elif w < number_of_machines + 1:
+        elif w < number_of_machines+1:
             row_sum = np.append(row_sum, j + row_sum[w - 1])
         w = w + 1
     result = row_sum
@@ -39,7 +40,7 @@ def calculate(arr):
                     row_add = np.append(row_add, k)
                 elif n == 1:
                     row_add = np.append(row_add, k + row_before[1])
-                elif n < number_of_machines + 1:
+                elif n < number_of_machines+1:
                     add = max(row_add[n - 1], row_before[n]) + k
                     row_add = np.append(row_add, add)
                 else:
@@ -59,7 +60,7 @@ def swap(arr, a, b):
 
 def tabu(tabu_lis, tabu1, tabu2):
     tabu_lis.append((tabu1, tabu2))
-    if len(tabu_lis) > 3:
+    if len(tabu_lis) > 7:
         del tabu_lis[0]
 
 
@@ -70,6 +71,7 @@ def main(data):
     add_first = True
     min = 0
     print(tabu_list)
+
     for i in range(tasks - 1):
         for j in range(i + 1, tasks):
             x1 = data[i, 0] - 1
@@ -78,13 +80,13 @@ def main(data):
             new_score = calculate(data)[-1][-1]
             comb.append(new_score)
             if (x1, x2) not in tabu_list and (x2, x1) not in tabu_list:
-                if add_first is True or new_score < min:
+                if add_first or new_score < min:
                     add_first = False
                     first = x1
                     second = x2
                     min = new_score
             swap(data, x1, x2)
-
+    print(comb)
     swap(data, first, second)
     tabu(tabu_list, first, second)
     print(calculate(data)[-1][-1])
