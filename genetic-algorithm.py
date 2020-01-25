@@ -9,7 +9,7 @@ np.set_printoptions(suppress=True)
 
 df = df.to_numpy()
 tasks = df.shape[0]
-number_of_machines = df.shape[1] - 1
+number_of_machines = df.shape[1]
 df_start = df.copy()
 
 
