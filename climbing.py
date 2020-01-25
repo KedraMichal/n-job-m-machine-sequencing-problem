@@ -4,13 +4,13 @@ import random as rd
 import sklearn
 import xlrd
 
-df = pd.read_excel('data2.xlsx')
+df = pd.read_excel('data.xlsx')
 df = sklearn.utils.shuffle(df)
 df = df.reset_index(drop=True)
 np.set_printoptions(suppress=True)
 df = df.to_numpy()
 tasks = df.shape[0]
-number_of_machines = df.shape[1] - 1
+number_of_machines = df.shape[1]
 
 
 def calculate(arr):
@@ -51,6 +51,7 @@ def calculate(arr):
             result = np.vstack([result, row_add])
     return result
 
+
 def random():
     a = rd.randint(0, tasks - 1)
     b = rd.randint(0, tasks - 1)
@@ -75,11 +76,11 @@ def main():
     else:
         return dfcopy
 
-for i in range(1000):
+for i in range(10):
     final = main()
     df = final.copy()
 
-print(calculate(final))
+
 final = pd.DataFrame(calculate(final))
 final = final.astype(int)
 final.to_csv("climbing_result.csv", index=False, header=None)
